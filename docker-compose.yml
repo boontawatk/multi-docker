@@ -1,0 +1,54 @@
+version: "3"
+services: 
+    reactapp:
+        stdin_open: true
+        volumes:
+            - /app/node_modules
+            - ./client:/app
+            # look closely with directory
+        build:
+            dockerfile: Dockerfile.dev
+            context: ./client
+        # ports:
+        #     - "3000:3000"
+    nodeapp:
+        volumes:
+            - /app/server/node_modules
+            - ./server:/app/server
+        build: 
+            # dockerfile only for name
+            dockerfile: Dockerfile.dev
+            # context is directtory for dockerfile
+            context: ./server
+        environment: 
+            - REDIS_HOST=redis
+            - PORT=6379
+            - PGUSER=postgres
+            - PGHOST=postgres
+            - PGDATABASE=postgres
+            - PGPASSWORD=postgres_password
+            - PGPORT=5432
+        # ports:
+        #     - "3001:5000"
+    postgres:
+        image: 'postgres:latest'
+        environment:
+            - POSTGRES_PASSWORD=postgres_password
+    redis:
+        image: 'redis:latest'
+    worker:
+        build:
+            dockerfile: Dockerfile.dev
+            context: ./worker
+        volumes:
+            - /app/node_modules
+            - ./worker:/app
+    nginx:
+        restart: always
+        # always restart if failed
+        build:
+            dockerfile: Dockerfile.dev
+            context: ./nginx
+        ports:
+            - '3050:80'
+        # port mapping only here one place
